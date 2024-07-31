@@ -6,7 +6,10 @@ import { router as urlRoute } from "./routes/url.route.js";
 import { router as staticRoute } from "./routes/staticRouter.route.js";
 import { router as userRoute } from "./routes/user.route.js";
 import { connectToMongoDB } from "./connection.js";
-import { restrictToLoggedinUserOnly, checkAuth } from "./middlewares/auth.middleware.js";
+import {
+  checkForAuthentication,
+  restirctTo,
+} from "./middlewares/auth.middleware.js";
 
 const app = express();
 const port = 8000;
@@ -14,6 +17,7 @@ const port = 8000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(checkForAuthentication);
 
 connectToMongoDB("mongodb://127.0.0.1:27017/short-url")
   .then(() => console.log("MongoDB connected"))
@@ -23,9 +27,9 @@ app.set("view engine", "ejs");
 app.set("views", path.resolve("./views"));
 
 //routes
-app.use("/url", restrictToLoggedinUserOnly, urlRoute);
+app.use("/url", restirctTo(["NORMAL"]), urlRoute);
 app.use("/user", userRoute);
-app.use("/",checkAuth, staticRoute);
+app.use("/", staticRoute);
 
 // app.get("/test", async (req, res) => {
 //     const allUrls = await URL.find({});

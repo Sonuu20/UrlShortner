@@ -1,6 +1,5 @@
 import User from "../models/user.model.js";
-import { v4 as uuid4 } from "uuid";
-import { setUser, getUser } from "../service/auth.service.js";
+import { setUser } from "../service/auth.service.js";
 
 async function handleUserSignup(req, res) {
   const { name, email, password } = req.body;
@@ -19,10 +18,9 @@ async function handleUserLogin(req, res) {
     return res.render("login", {
       error: "Invalid Username or Password",
     });
-    
-    const sessionId = uuid4();
-    setUser(sessionId, user);
-    res.cookie('uid',sessionId);
+
+  const token = setUser(user);
+   res.cookie("token", token);
   return res.redirect("/");
 }
 

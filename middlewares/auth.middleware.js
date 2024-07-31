@@ -1,25 +1,52 @@
 import { getUser } from "../service/auth.service.js";
 
-async function restrictToLoggedinUserOnly(req, res, next) {
-    // console.log(req);
-  const userUid = req.cookies?.uid;
+function checkForAuthentication(req, res, next) {
+  const tokenCookie = req.cookie?.token;
+  req.user = null;
 
-  if (!userUid) return res.redirect("/login");
-  const user = getUser(userUid);
+  if (!tokenCookie) return next();
 
-  if (!user) return res.redirect("/login");
-
-  req.user = user;
-  next();
-}
-
-async function checkAuth(req, res, next) {
-  const userUid = req.cookies?.uid;
-
-  const user = getUser(userUid);
+  const token = tokenCookie;
+  const user = getUser(token);
 
   req.user = user;
-  next();
+  return next();
+};
+
+// async function restrictToLoggedinUserOnly(req, res, next) {
+//   // console.log(req);
+//   // const userUid = req.cookies?.uid;
+//   const userUid = req.headers("Authorization");
+
+//   if (!userUid) return res.redirect("/login");
+//   const token = userUid.split("Bearer")[1];
+//   const user = getUser(token);
+
+//   if (!user) return res.redirect("/login");
+
+//   req.user = user;
+//   next();
+// }
+
+// async function checkAuth(req, res, next) {
+//   console.log(req.headers);
+//   const userUid = req.headers("authorization");
+//   const token = userUid.split("Bearer ")[1];
+
+//   const user = getUser(userUid);
+
+//   req.user = getUser(token);
+//   next();
+// }
+
+function restirctTo(roles) {
+  return function (req, res, next) {
+    if (!req.user) return res.redirect("/login");
+
+    if (!roles.includes(req.user.role)) return res.end("UnAuthorized");
+
+    next();
+  };
 }
 
-export { restrictToLoggedinUserOnly, checkAuth };
+export { checkForAuthentication, restirctTo };
